@@ -132,13 +132,43 @@ test("Remove one item during Checkout", async ({page}) => {
 // for (let i=1;i<prices.length;i++) expect(prices[i]).toBeGreaterThanOrEqual(prices[i-1]);
 // await page.screenshot({ path: 'lohi.png', fullPage: true });
 
-test("Filter,screenshot", async ({page}) => {
+// test("Filter,screenshot", async ({page}) => {
+//   await page.locator("select[data-test='product-sort-container']").selectOption("lohi");
+//   const prices = (await page.locator(locators.inventory).allTextContents()).map(t => parseFloat(t.replace('$', '').trim()));
+//   for (let i=1;i<prices.length;i++) expect(prices[i]).toBeGreaterThanOrEqual(prices[i-1]);
+//   await page.screenshot({path: 'lohi.png', fullPage: true});
+//   await expect(page).toHaveURL(/inventory.html/);
+// })
+
+test("Filter,screenshot", async ({ page }) => {
   await page.locator("select[data-test='product-sort-container']").selectOption("lohi");
-  const prices = (await page.locator(locators.inventory).allTextContents()).map(t => parseFloat(t.replace('$', '').trim()));
-  for (let i=1;i<prices.length;i++) expect(prices[i]).toBeGreaterThanOrEqual(prices[i-1]);
-  await page.screenshot({path: 'lohi.png', fullPage: true});
+
+  await page.waitForSelector('.inventory_item_price'); // siguron që çmimet janë render-uar
+  const texts = await page.locator('.inventory_item_price').allTextContents();
+  console.log('raw price texts:', texts);
+
+  const prices = texts.map(t => {
+    const normalized = t.replace('$', '').replace(',', '.').trim();
+    return parseFloat(normalized);
+  });
+  console.log('parsed prices:', prices);
+
+  const nanIndexes = prices.map((p, i) => isNaN(p) ? i : -1).filter(i => i !== -1);
+  if (nanIndexes.length > 0) {
+    throw new Error(`Parsed NaN at indexes: ${nanIndexes.join(', ')}. raw texts: ${JSON.stringify(texts)}`);
+  }
+
+  for (let i = 1; i < prices.length; i++) {
+    if (!(prices[i] >= prices[i - 1])) {
+      throw new Error(`Prices not sorted: index ${i-1}=${prices[i-1]}, index ${i}=${prices[i]}. full: ${prices.join(', ')}`);
+    }
+  }
+
+  await page.screenshot({ path: 'lohi.png', fullPage: true });
   await expect(page).toHaveURL(/inventory.html/);
-})
+});
+
+
 
 // Task 6 — Accessibility quick check (axe)
 // Qëllimi: Bëj një kontroll të shpejtë accessibility me playwright-axe. (opsionale)
