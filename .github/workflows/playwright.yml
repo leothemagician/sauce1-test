@@ -1,10 +1,9 @@
 name: Daily Playwright Tests
 
-# Aktivizo workflow automatikisht çdo ditë në 09:00
 on:
   schedule:
-    - cron: '0 9 * * *'   # 09:00 UTC çdo ditë
-  workflow_dispatch:       # lejon ekzekutim manual po ashtu
+    - cron: '0 9 * * *'  # 09:00 UTC çdo ditë
+  workflow_dispatch:      # lejon ekzekutim manual
 
 jobs:
   test:
@@ -21,6 +20,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Verify Playwright installation
+        run: npx playwright --version
 
       - name: Run Playwright tests
         run: npx playwright test --reporter=html
