@@ -135,7 +135,6 @@ test("Remove one item during Checkout", async ({page}) => {
 test("Filter,screenshot", async ({page}) => {
   await page.locator("select[data-test='product-sort-container']").selectOption("lohi");
   const prices = (await page.locator(locators.inventory).allTextContents()).map(t => parseFloat(t.replace('$', '').trim()));
-  // const prices = await page.locator(locators.inventory).allTextContents().map(t => parseFloat(t.replace('$','')));
   for (let i=1;i<prices.length;i++) expect(prices[i]).toBeGreaterThanOrEqual(prices[i-1]);
   await page.screenshot({path: 'lohi.png', fullPage: true});
   await expect(page).toHaveURL(/inventory.html/);
